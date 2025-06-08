@@ -1,4 +1,0 @@
-C:/Users/AmazingBuff/Desktop/amazing_std/build/x64-debug/CMakeFiles/amazing_std.dir
-C:/Users/AmazingBuff/Desktop/amazing_std/build/x64-debug/CMakeFiles/amazing_std_test.dir
-C:/Users/AmazingBuff/Desktop/amazing_std/build/x64-debug/CMakeFiles/edit_cache.dir
-C:/Users/AmazingBuff/Desktop/amazing_std/build/x64-debug/CMakeFiles/rebuild_cache.dir
