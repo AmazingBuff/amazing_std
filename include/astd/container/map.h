@@ -120,6 +120,53 @@ public:
     }
 };
 
+template <typename Key, typename Tp, typename Pred = Less<Key>, template <typename> typename Alloc = Allocator>
+class BalancedMap : public Internal::AVLTree<Internal::MapTrait<Key, Tp, Pred, Alloc, false>>
+{
+    using Tree = Internal::AVLTree<Internal::MapTrait<Key, Tp, Pred, Alloc, false>>;
+    using Iterator = typename Tree::Iterator;
+public:
+    Tp& operator[](const Key& key)
+    {
+        auto node = Tree::find_node(key);
+        if (node == nullptr)
+            return Tree::emplace(key, Tp())->second;
+
+        return node->val.second;
+    }
+
+    const Tp& operator[](const Key& key) const
+    {
+        return Tree::find_node(key)->val.second;
+    }
+
+    Iterator find(const Key& key)
+    {
+        return Iterator(Tree::find_node(key));
+    }
+
+    Iterator const find(const Key& key) const
+    {
+        return Iterator(Tree::find_node(key));
+    }
+};
+
+template <typename Key, typename Tp, typename Pred = Less<Key>, template <typename> typename Alloc = Allocator>
+class BalancedMultiMap : public Internal::AVLTree<Internal::MapTrait<Key, Tp, Pred, Alloc, true>>
+{
+    using Tree = Internal::AVLTree<Internal::MapTrait<Key, Tp, Pred, Alloc, true>>;
+    using Iterator = typename Tree::Iterator;
+public:
+    Iterator find(const Key& key)
+    {
+        return Iterator(Tree::find_node(key));
+    }
+
+    Iterator const find(const Key& key) const
+    {
+        return Iterator(Tree::find_node(key));
+    }
+};
 
 // hash map
 template <typename Key, typename Tp, typename Hasher = std::hash<Key>, typename Equal = Equal<Key>, template <typename> typename Alloc = Allocator>

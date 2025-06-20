@@ -7,6 +7,7 @@
 #include "trait/functional.h"
 
 #include "container/vector.h"
+#include "container/dynamic_vector.h"
 #include "container/string.h"
 #include "container/list.h"
 #include "container/queue.h"
@@ -18,6 +19,8 @@
 #include "memory/pointer.h"
 
 #include "algorithm/sort.h"
+
+#include "sync/thread.h"
 
 AMAZING_NAMESPACE_BEGIN
 

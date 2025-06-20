@@ -28,13 +28,14 @@ public:
 };
 
 
-template <typename Tp, typename Hash, template <typename> typename Alloc, bool Multi>
+template <typename Tp, typename Hash, typename Equal, template <typename> typename Alloc, bool Multi>
 class HashSetTrait
 {
 public:
     using key_type      =   Tp;
     using value_type    =   Tp;
     using key_hash      =   Hash;
+    using key_equal     =   Equal;
     using node_type     =   HashNode<value_type>;
     using allocator     =   Alloc<node_type>;
     using value_hash    =   key_hash;
@@ -98,10 +99,10 @@ public:
 
 
 // hash set
-template <typename Tp, typename Hasher = std::hash<Tp>, template <typename> typename Alloc = Allocator>
-class HashSet : public Internal::Hash<Internal::HashSetTrait<Tp, Hasher, Alloc, false>>
+template <typename Tp, typename Hasher = std::hash<Tp>, typename Equal = Equal<Tp>, template <typename> typename Alloc = Allocator>
+class HashSet : public Internal::Hash<Internal::HashSetTrait<Tp, Hasher, Equal, Alloc, false>>
 {
-    using Hash = Internal::Hash<Internal::HashSetTrait<Tp, Hasher, Alloc, false>>;
+    using Hash = Internal::Hash<Internal::HashSetTrait<Tp, Hasher, Equal, Alloc, false>>;
     using Iterator = typename Hash::Iterator;
 public:
     Iterator find(const Tp& key)
@@ -115,10 +116,10 @@ public:
     }
 };
 
-template <typename Tp, typename Hasher = std::hash<Tp>, template <typename> typename Alloc = Allocator>
-class MultiHashSet : public Internal::Hash<Internal::HashSetTrait<Tp, Hasher, Alloc, true>>
+template <typename Tp, typename Hasher = std::hash<Tp>, typename Equal = Equal<Tp>, template <typename> typename Alloc = Allocator>
+class MultiHashSet : public Internal::Hash<Internal::HashSetTrait<Tp, Hasher, Equal, Alloc, true>>
 {
-    using Hash = Internal::Hash<Internal::HashSetTrait<Tp, Hasher, Alloc, true>>;
+    using Hash = Internal::Hash<Internal::HashSetTrait<Tp, Hasher, Equal, Alloc, true>>;
     using Iterator = typename Hash::Iterator;
 public:
     Iterator find(const Tp& key)

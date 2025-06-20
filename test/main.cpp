@@ -12,25 +12,40 @@ struct NoDtor
     Amazing::Map<int, Amazing::String> m;
 };
 
-void produce()
+class ProduceThread : public Amazing::Thread
 {
-    int32_t v[10] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-    while (true)
+private:
+    void run(std::stop_token token) override
     {
-        ring.write(v, 10);
-        std::cout << ring.size() << '\n';
-    }
-}
+        int32_t v[10] = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        while (true)
+        {
+            if (token.stop_requested())
+                return;
 
-void consume()
-{
-    Amazing::Vector<int32_t> v(10);
-    while (true)
-    {
-        ring.read(v.data(), 10);
-        std::cout << ring.size() << '\n';
+            ring.write(v, 10);
+            std::cout << ring.size() << '\n';
+        }
     }
-}
+};
+
+class ConsumeThread : public Amazing::Thread
+{
+private:
+    void run(std::stop_token token) override
+    {
+        Amazing::Vector<int32_t> v(10);
+        while (true)
+        {
+            if (token.stop_requested())
+                return;
+
+            ring.read(v.data(), 10);
+            std::cout << ring.size() << '\n';
+        }
+    }
+};
+
 
 void just()
 {
@@ -70,6 +85,16 @@ void iii(int x)
 
 int main()
 {
+    ProduceThread produce_thread;
+    ConsumeThread consume_thread;
+
+    produce_thread.start();
+    consume_thread.start();
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+    produce_thread.stop();
+    consume_thread.stop();
+
     int hj = 5;
     Amazing::Functional<void(int)> td(iii);
 
