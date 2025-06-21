@@ -23,7 +23,7 @@ public:
     {
         if (!m_running)
         {
-            m_thread = std::jthread([=](std::stop_token token)
+            m_thread = std::jthread([this](std::stop_token token)
             {
                 this->run(std::move(token));
             });

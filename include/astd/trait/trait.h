@@ -133,7 +133,7 @@ namespace Trait
 	{
 		null_type m_data;
 
-		constexpr const type_list& operator=(const type_list& other) const
+		type_list& operator=(const type_list&)
 		{
 			return *this;
 		}
