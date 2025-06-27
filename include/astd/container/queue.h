@@ -46,6 +46,27 @@ public:
         m_size++;
     }
 
+    void enqueue(const Tp& value)
+    {
+        Internal::ListNode<Tp>* node = allocator::allocate(1);
+        node->val = value;
+        node->next = nullptr;
+
+        if (!empty())
+        {
+            m_head->prev->next = node;
+            node->prev = m_head->prev;
+        }
+        else
+        {
+            m_head->next = node;
+            node->prev = m_head;
+        }
+
+        m_head->prev = node;
+        m_size++;
+    }
+
     void dequeue()
     {
         if (empty())

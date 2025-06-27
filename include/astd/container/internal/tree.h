@@ -6,9 +6,21 @@ AMAZING_NAMESPACE_BEGIN
 
 INTERNAL_NAMESPACE_BEGIN
 
+template <typename Trait, typename NodeType>
+struct TreeTrait : Trait
+{
+    using Trait::key_type;
+    using Trait::value_type;
+    using Trait::key_compare;
+    using Trait::value_compare;
+    using node_type = NodeType;
+    using allocator = typename Trait::template alloc<node_type>;
+};
+
 template <typename Trait>
 class BinaryTree
 {
+protected:
     using key_type = typename Trait::key_type;
     using value_type = typename Trait::value_type;
     using key_compare = typename Trait::key_compare;
@@ -444,15 +456,16 @@ struct RBTreeNode
 };
 
 template <typename Trait>
-class RBTree : public BinaryTree<Trait>
+class RBTree : public BinaryTree<TreeTrait<Trait, RBTreeNode<typename Trait::value_type>>>
 {
-    using key_type = typename Trait::key_type;
-    using value_type = typename Trait::value_type;
-    using key_compare = typename Trait::key_compare;
-    using value_compare = typename Trait::value_compare;
-    using node_type = typename Trait::node_type;
-    using allocator = typename Trait::allocator;
-    using Tree = BinaryTree<Trait>;
+    using Tree = BinaryTree<TreeTrait<Trait, RBTreeNode<typename Trait::value_type>>>;
+
+    using typename Tree::key_type;
+    using typename Tree::value_type;
+    using typename Tree::key_compare;
+    using typename Tree::value_compare;
+    using typename Tree::node_type;
+    using typename Tree::allocator;
 
     static constexpr bool is_set = std::is_same_v<key_type, value_type>;
 public:
@@ -739,106 +752,95 @@ struct AVLTreeNode
     AVLTreeNode* parent;
     AVLTreeNode* left;
     AVLTreeNode* right;
-
-    // left - right
-    int8_t balance_factor;
+    int32_t depth;
 };
 
 template <typename Trait>
-class AVLTree : public BinaryTree<Trait>
+class AVLTree : public BinaryTree<TreeTrait<Trait, AVLTreeNode<typename Trait::value_type>>>
 {
-    using key_type = typename Trait::key_type;
-    using value_type = typename Trait::value_type;
-    using key_compare = typename Trait::key_compare;
-    using value_compare = typename Trait::value_compare;
-    using node_type = typename Trait::node_type;
-    using allocator = typename Trait::allocator;
-    using Tree = BinaryTree<Trait>;
+    using Tree = BinaryTree<TreeTrait<Trait, AVLTreeNode<typename Trait::value_type>>>;
 
+    using typename Tree::key_type;
+    using typename Tree::value_type;
+    using typename Tree::key_compare;
+    using typename Tree::value_compare;
+    using typename Tree::node_type;
+    using typename Tree::allocator;
 public:
     AVLTree() = default;
     ~AVLTree() override = default;
 private:
-    // node is parent
-    void ll(node_type* node)
+    static int32_t balance_factor(node_type* node)
     {
-        node_type* root = Tree::right_rotate(node);
-        node_type* right = node->right;
-        int8_t left_balance_factor = right->left ? std::abs(right->left->balance_factor) : 0;
-        int8_t right_balance_factor = right->right ? std::abs(right->right->balance_factor) : 0;
-
-        right->balance_factor = left_balance_factor - right_balance_factor;
-        root->balance_factor = std::abs(root->left->balance_factor) - std::abs(right->balance_factor);
+        int32_t left_depth = node->left ? node->left->depth : 0;
+        int32_t right_depth = node->right ? node->right->depth : 0;
+        return left_depth - right_depth;
     }
 
-    void lr(node_type* node)
+    static int32_t update_depth(node_type* node)
     {
-        node_type* brother = node->left;
-        Tree::left_rotate(brother);
-        node_type* root = Tree::right_rotate(node);
-        node_type* left = node->left;
-        node_type* right = node->right;
-
-        int8_t left_balance_factor = left->left ? std::abs(left->left->balance_factor) : 0;
-        int8_t right_balance_factor = left->right ? std::abs(left->right->balance_factor) : 0;
-        left->balance_factor = right_balance_factor - left_balance_factor;
-
-        left_balance_factor = right->left ? std::abs(right->left->balance_factor) : 0;
-        right_balance_factor = right->right ? std::abs(right->right->balance_factor) : 0;
-        right->balance_factor = left_balance_factor - right_balance_factor;
-
-        root->balance_factor = std::abs(left->balance_factor) - std::abs(right->balance_factor);
+        int32_t left_depth = node->left ? node->left->depth : 0;
+        int32_t right_depth = node->right ? node->right->depth : 0;
+        node->depth = std::max(left_depth, right_depth) + 1;
+        return node->depth;
     }
 
-    void rl(node_type* node)
-    {
-        node_type* brother = node->right;
-        Tree::right_rotate(brother);
-        node_type* root = Tree::left_rotate(node);
-        node_type* left = node->left;
-        node_type* right = node->right;
-
-        int8_t left_balance_factor = left->left ? std::abs(left->left->balance_factor) : 0;
-        int8_t right_balance_factor = left->right ? std::abs(left->right->balance_factor) : 0;
-        left->balance_factor = right_balance_factor - left_balance_factor;
-
-        left_balance_factor = right->left ? std::abs(right->left->balance_factor) : 0;
-        right_balance_factor = right->right ? std::abs(right->right->balance_factor) : 0;
-        right->balance_factor = left_balance_factor - right_balance_factor;
-
-        root->balance_factor = std::abs(left->balance_factor) - std::abs(right->balance_factor);
-    }
-
-    void rr(node_type* node)
-    {
-        node_type* root = Tree::left_rotate(node);
-        node_type* left = node->left;
-        int8_t left_balance_factor = left->left ? std::abs(left->left->balance_factor) : 0;
-        int8_t right_balance_factor = left->right ? std::abs(left->right->balance_factor) : 0;
-
-        left->balance_factor = left_balance_factor - right_balance_factor;
-        root->balance_factor = std::abs(left->balance_factor) - std::abs(root->right->balance_factor);
-    }
-
-    node_type* update_balance_factor(node_type* node)
+    static node_type* update_balance_factor(node_type* node)
     {
         while (node)
         {
-            if (std::abs(node->balance_factor) > 1 || node->balance_factor == 0)
+            int32_t balance = balance_factor(node);
+            if (std::abs(balance) > 1 || balance == 0)
                 break;
 
             node_type* parent = node->parent;
             if (parent)
-            {
-                if (parent->left == node)
-                    parent->balance_factor += std::abs(node->balance_factor);
-                else
-                    parent->balance_factor -= std::abs(node->balance_factor);
-            }
+                update_depth(parent);
 
             node = parent;
         }
         return node;
+    }
+
+    // node is parent
+    node_type* ll(node_type* node)
+    {
+        node_type* root = Tree::right_rotate(node);
+        update_depth(root->right);
+        root->depth = std::max(root->left->depth, root->right->depth) + 1;
+        return root;
+    }
+
+    node_type* lr(node_type* node)
+    {
+        node_type* brother = node->left;
+        Tree::left_rotate(brother);
+        node_type* root = Tree::right_rotate(node);
+
+        update_depth(root->left);
+        update_depth(root->right);
+        root->depth = std::max(root->left->depth, root->right->depth) + 1;
+        return root;
+    }
+
+    node_type* rl(node_type* node)
+    {
+        node_type* brother = node->right;
+        Tree::right_rotate(brother);
+        node_type* root = Tree::left_rotate(node);
+
+        update_depth(root->left);
+        update_depth(root->right);
+        root->depth = std::max(root->left->depth, root->right->depth) + 1;
+        return root;
+    }
+
+    node_type* rr(node_type* node)
+    {
+        node_type* root = Tree::left_rotate(node);
+        update_depth(root->left);
+        root->depth = std::max(root->left->depth, root->right->depth) + 1;
+        return root;
     }
 
     // node has been inserted to appropriate position
@@ -848,17 +850,16 @@ private:
             return;
 
         node_type* parent = node->parent;
+        int32_t balance = balance_factor(parent);
         if (parent->left == node)
         {
-            if (parent->balance_factor == -1)
-                parent->balance_factor = 0;
-            else if (parent->balance_factor == 0)
+            if (balance == 0)
             {
-                parent->balance_factor = 1;
-                node_type* new_node = update_balance_factor(parent);
-                if (new_node)
+                parent->depth += 1;
+                if (node_type* new_node = update_balance_factor(parent))
                 {
-                    if (new_node->balance_factor == 2)
+                    balance = balance_factor(new_node);
+                    if (balance == 2)
                     {
                         if (new_node->left == parent)
                             // all in left
@@ -866,24 +867,22 @@ private:
                         else
                             lr(new_node);
                     }
-                    else if (new_node->balance_factor == -2)
+                    else if (balance == -2)
                         rl(new_node);
                 }
             }
         }
         else
         {
-            if (parent->balance_factor == 1)
-                parent->balance_factor = 0;
-            else if (parent->balance_factor == 0)
+            if (balance == 0)
             {
-                parent->balance_factor = -1;
-                node_type* new_node = update_balance_factor(parent);
-                if (new_node)
+                parent->depth += 1;
+                if (node_type* new_node = update_balance_factor(parent))
                 {
-                    if (new_node->balance_factor == 2)
+                    balance = balance_factor(new_node);
+                    if (balance == 2)
                         lr(new_node);
-                    else if (new_node->balance_factor == -2)
+                    else if (balance == -2)
                     {
                         if (new_node->right == parent)
                             // all in right
@@ -892,6 +891,50 @@ private:
                             rl(new_node);
                     }
                 }
+            }
+        }
+    }
+
+    // node mustn't be nullptr
+    void erase_balance(node_type* node)
+    {
+        int32_t left_depth = node->left ? node->left->depth : 0;
+        int32_t right_depth = node->right ? node->right->depth : 0;
+        int32_t balance = left_depth - right_depth;
+        if (balance >= 2)
+        {
+            balance = balance_factor(node->left);
+            if (balance == 0)
+                ll(node);
+            else if (balance == -1)
+            {
+                node = lr(node);
+                if (node_type* new_node = update_balance_factor(node->parent))
+                    erase_balance(new_node);
+            }
+            else if (balance == 1)
+            {
+                node = ll(node);
+                if (node_type* new_node = update_balance_factor(node->parent))
+                    erase_balance(new_node);
+            }
+        }
+        else if (balance <= -2)
+        {
+            balance = balance_factor(node->right);
+            if (balance == 0)
+                rr(node);
+            else if (balance == -1)
+            {
+                node = rr(node);
+                if (node_type* new_node = update_balance_factor(node->parent))
+                    erase_balance(new_node);
+            }
+            else if (balance == 1)
+            {
+                node = rl(node);
+                if (node_type* new_node = update_balance_factor(node->parent))
+                    erase_balance(new_node);
             }
         }
     }
@@ -912,63 +955,61 @@ private:
         }
         else if (node->left != nullptr || node->right != nullptr)
         {
-            // one child, the balance factor of this child must be 0
+            // one child
             node_type* child = node->left ? node->left : node->right;
-            child->parent = node->parent;
+            Tree::swap(node, child);
             if (node == Tree::m_root)
-            {
-                Tree::erase_directly(node);
-                node = nullptr;
                 Tree::m_root = child;
-            }
-            else
-            {
-                node_type* parent = node->parent;
-                if (node == parent->left)
-                    parent->left = child;
-                else
-                    parent->right = child;
-                Tree::erase_directly(node);
-                node = nullptr;
-            }
+            erase_adjustment(node);
         }
         else
         {
-            if (node->color == node_type::Color::Red)
-            {
-                node_type* parent = node->parent;
-                if (node == parent->left)
-                    parent->left = nullptr;
-                else
-                    parent->right = nullptr;
-
-                Tree::erase_directly(node);
-                node = nullptr;
-            }
+            // no child
+            if (node == Tree::m_root)
+                Tree::m_root = nullptr;
             else
             {
-                // if node is black, it must have a brother exclude root
-                if (node == Tree::m_root)
-                    Tree::m_root = nullptr;
-                else
+                node_type* parent = node->parent;
+                int32_t balance = balance_factor(parent);
+                if (balance == 0)
                 {
-                    double_black_adjustment(node);
-                    node_type* parent = node->parent;
-
                     if (parent->left == node)
                         parent->left = nullptr;
                     else
                         parent->right = nullptr;
-
-                    while (parent->parent != nullptr)
-                        parent = parent->parent;
-
-                    Tree::m_root = parent;
                 }
-
-                Tree::erase_directly(node);
-                node = nullptr;
+                else if (balance == -1)
+                {
+                    if (parent->left == node)
+                    {
+                        parent->left = nullptr;
+                        erase_balance(parent);
+                    }
+                    else
+                    {
+                        parent->right = nullptr;
+                        if (parent->parent)
+                            erase_balance(parent->parent);
+                    }
+                }
+                else
+                {
+                    if (parent->left == node)
+                    {
+                        parent->left = nullptr;
+                        if (parent->parent)
+                            erase_balance(parent->parent);
+                    }
+                    else
+                    {
+                        parent->right = nullptr;
+                        erase_balance(parent);
+                    }
+                }
             }
+
+            Tree::erase_directly(node);
+            node = nullptr;
         }
     }
 
@@ -979,7 +1020,7 @@ private:
         node->parent = parent;
         node->left = nullptr;
         node->right = nullptr;
-        node->balance_factor = 0;
+        node->depth = 1;
 
         return node;
     }

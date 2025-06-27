@@ -736,4 +736,18 @@ NODISCARD constexpr std::underlying_type_t<Tp> to_underlying(Tp val)
 
 #include "trait.inl"
 
+
+#define FLAG_ENUM(type) \
+inline type operator|(const type& l, const type& r) {return static_cast<type>(to_underlying(l) | to_underlying(r));}	\
+inline type operator&(const type& l, const type& r) {return static_cast<type>(to_underlying(l) & to_underlying(r));}	\
+inline type operator^(const type& l, const type& r) {return static_cast<type>(to_underlying(l) ^ to_underlying(r));}	\
+inline type& operator|=(type& l, const type& r) {l = static_cast<type>(to_underlying(l) | to_underlying(r)); return l;}	\
+inline type& operator&=(type& l, const type& r) {l = static_cast<type>(to_underlying(l) & to_underlying(r)); return l;}	\
+inline type& operator^=(type& l, const type& r) {l = static_cast<type>(to_underlying(l) ^ to_underlying(r)); return l;}	\
+inline bool operator!(const type& v) {return to_underlying(v) == 0;}		\
+inline bool operator||(const type& l, const type& r) { return to_underlying(l) != 0 || to_underlying(r) != 0; }	\
+inline bool operator&&(const type& l, const type& r) { return to_underlying(l) != 0 && to_underlying(r) != 0; }
+
+#define FLAG_IDENTITY(v, flag) (v & flag) == flag
+
 AMAZING_NAMESPACE_END

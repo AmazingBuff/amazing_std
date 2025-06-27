@@ -13,8 +13,8 @@ public:
     using key_type      =   Key;
     using value_type    =   Pair<Key, Tp>;
     using key_compare   =   Pred;
-    using node_type     =   RBTreeNode<value_type>;
-    using allocator     =   Alloc<node_type>;
+    template <typename T>
+    using alloc         =   Alloc<T>;
     
     class value_compare
     {
@@ -33,7 +33,6 @@ public:
         return val.first;
     }
 };
-
 
 
 template <typename Key, typename Tp, typename Hash, typename Equal, template <typename> typename Alloc, bool Multi>

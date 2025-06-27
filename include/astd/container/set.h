@@ -11,12 +11,12 @@ template <typename Tp, typename Pred, template <typename> typename Alloc, bool M
 class SetTrait
 {
 public:
-    using key_type = Tp;
-    using value_type = Tp;
-    using key_compare = Pred;
-    using node_type = RBTreeNode<value_type>;
-    using allocator = Alloc<node_type>;
-    using value_compare = key_compare;
+    using key_type      =   Tp;
+    using value_type    =   Tp;
+    using key_compare   =   Pred;
+    template <typename T>
+    using alloc         =   Alloc<T>;
+    using value_compare =   key_compare;
 
     static constexpr bool is_multi = Multi;
 

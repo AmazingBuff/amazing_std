@@ -19,6 +19,7 @@
 #include "memory/pointer.h"
 
 #include "algorithm/sort.h"
+#include "algorithm/iter.h"
 
 #include "sync/thread.h"
 

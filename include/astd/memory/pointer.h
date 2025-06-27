@@ -100,6 +100,21 @@ public:
     {
         return Ptr::m_ptr;
     }
+
+    NODISCARD Tp& operator*() const
+    {
+        return *Ptr::m_ptr;
+    }
+
+    NODISCARD bool operator==(const SharedPtr& rhs) const
+    {
+        return Ptr::m_ptr == rhs.Ptr::m_ptr;
+    }
+
+    NODISCARD bool operator!=(const SharedPtr& rhs) const
+    {
+        return Ptr::m_ptr != rhs.Ptr::m_ptr;
+    }
 };
 
 

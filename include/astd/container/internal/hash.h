@@ -213,6 +213,17 @@ public:
                 m_size++;
                 return Iterator(m_buckets + probe_group * max_bucket_size + i);
             }
+            else if (m_buckets[probe_group * max_bucket_size + i].flag == ElementFlag::e_valid &&
+                    key_equal()(Trait::key_func(m_buckets[probe_group * max_bucket_size + i].val), Trait::key_func(value)))
+            {
+                if constexpr (!Trait::is_multi)
+                    return Iterator(m_buckets + probe_group * max_bucket_size + i);
+            }
+            else if (m_buckets[probe_group * max_bucket_size + i].flag == ElementFlag::e_valid &&
+                    !key_equal()(Trait::key_func(m_buckets[probe_group * max_bucket_size + i].val), Trait::key_func(value)))
+            {
+                // todo: multimap handle
+            }
         }
 
         rehash(m_bucket_count * 2);
@@ -231,6 +242,17 @@ public:
                 m_buckets[probe_group * max_bucket_size + i].val = value;
                 m_size++;
                 return Iterator(m_buckets + probe_group * max_bucket_size + i);
+            }
+            else if (m_buckets[probe_group * max_bucket_size + i].flag == ElementFlag::e_valid &&
+                    key_equal()(Trait::key_func(m_buckets[probe_group * max_bucket_size + i].val), Trait::key_func(value)))
+            {
+                if constexpr (!Trait::is_multi)
+                    return Iterator(m_buckets + probe_group * max_bucket_size + i);
+            }
+            else if (m_buckets[probe_group * max_bucket_size + i].flag == ElementFlag::e_valid &&
+                    !key_equal()(Trait::key_func(m_buckets[probe_group * max_bucket_size + i].val), Trait::key_func(value)))
+            {
+                // todo: multimap handle
             }
         }
 
