@@ -10,7 +10,7 @@
 AMAZING_NAMESPACE_BEGIN
 
 template <typename Iter, typename F>
-bool any_of(Iter first, Iter last, F f)
+bool any_of(Iter first, Iter last, F&& f)
 {
     for (; first != last; ++first)
     {
@@ -21,13 +21,13 @@ bool any_of(Iter first, Iter last, F f)
 }
 
 template <typename Container, typename F>
-bool any_of(Container const& container, F f)
+bool any_of(Container const& container, F&& f)
 {
-    return any_of(begin(container), end(container), f);
+    return any_of(begin(container), end(container), std::forward<F>(f));
 }
 
 template <typename Iter, typename F>
-bool all_of(Iter first, Iter last, F f)
+bool all_of(Iter first, Iter last, F&& f)
 {
     for (; first != last; ++first)
     {
@@ -38,22 +38,22 @@ bool all_of(Iter first, Iter last, F f)
 }
 
 template <typename Container, typename F>
-bool all_of(Container const& container, F f)
+bool all_of(Container const& container, F&& f)
 {
-    return all_of(begin(container), end(container), f);
+    return all_of(begin(container), end(container), std::forward<F>(f));
 }
 
 template <typename Iter, typename F>
-void for_each(Iter first, Iter last, F f)
+void for_each(Iter first, Iter last, F&& f)
 {
     for (; first != last; ++first)
         f(*first);
 }
 
 template <typename Container, typename F>
-void for_each(Container const& container, F f)
+void for_each(Container const& container, F&& f)
 {
-    for_each(begin(container), end(container), f);
+    for_each(begin(container), end(container), std::forward<F>(f));
 }
 
 AMAZING_NAMESPACE_END

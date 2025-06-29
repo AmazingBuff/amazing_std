@@ -28,7 +28,7 @@ public:
         m_ref->weak_count = 1;
     }
 
-    virtual ~Ptr() = 0;
+    virtual ~Ptr() = default;
 
     explicit operator bool() const noexcept
     {

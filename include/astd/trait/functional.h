@@ -12,13 +12,15 @@ AMAZING_NAMESPACE_BEGIN
 
 INTERNAL_NAMESPACE_BEGIN
 
+static constexpr size_t Small_Function_Size = 64;
+
 template <typename R, typename... Args>
 class IFunctional
 {
 public:
     virtual ~IFunctional() = default;
     virtual R call(Args&&... args) = 0;
-    virtual IFunctional* clone() const = 0;
+    virtual IFunctional* clone(uint8_t* address) const = 0;
 };
 
 template <typename T, typename R, typename... Args>
@@ -30,9 +32,12 @@ public:
     {
         return m_value(std::forward<Args>(args)...);
     }
-    IFunctional<R, Args...>* clone() const override
+    IFunctional<R, Args...>* clone(uint8_t* address) const override
     {
-        return PLACEMENT_NEW(FunctionalImpl, sizeof(FunctionalImpl), std::move(m_value));
+        if constexpr (sizeof(FunctionalImpl) <= Small_Function_Size)
+            return new (address) FunctionalImpl(m_value);
+        else
+            return PLACEMENT_NEW(FunctionalImpl, sizeof(FunctionalImpl), std::move(m_value));
     }
 private:
     T m_value;
@@ -51,27 +56,46 @@ class Functional<R(Args...)>
 {
     using FunctionType = Internal::IFunctional<R, Args...>;
 public:
-    Functional() : m_functional(nullptr) {}
+    Functional() : m_functional(nullptr), m_stack{} {}
 
     template <typename F>
-    Functional(F f)
+    Functional(F f) : m_stack{}
     {
         using FunctionImplType = Internal::FunctionalImpl<F, R, Args...>;
-        m_functional = PLACEMENT_NEW(FunctionImplType, sizeof(FunctionImplType), std::move(f));
+        if constexpr (sizeof(FunctionImplType) <= Internal::Small_Function_Size)
+            m_functional = new (m_stack) FunctionImplType(std::move(f));
+        else
+            m_functional = PLACEMENT_NEW(FunctionImplType, sizeof(FunctionImplType), std::move(f));
+    }
+
+    Functional(const Functional& other) : m_stack{}
+    {
+        if constexpr (sizeof(Functional) <= Internal::Small_Function_Size)
+        {
+            m_stack = other.m_stack;
+            m_functional = other.m_functional;
+        }
+        else
+            m_functional = other.m_functional->clone(m_stack);
     }
 
     ~Functional()
     {
-        PLACEMENT_DELETE(FunctionType, m_functional);
+        if (reinterpret_cast<uintptr_t>(m_functional) != reinterpret_cast<uintptr_t>(m_stack))
+            PLACEMENT_DELETE(FunctionType, m_functional);
     }
 
     template <typename F>
     Functional& operator=(F f)
     {
-        if (m_functional != nullptr)
+        if (m_functional != nullptr && reinterpret_cast<uintptr_t>(m_functional) != reinterpret_cast<uintptr_t>(m_stack))
             PLACEMENT_DELETE(FunctionType, m_functional);
 
-        m_functional = PLACEMENT_NEW((Internal::FunctionalImpl<F, R, Args...>), sizeof(Internal::FunctionalImpl<F, R, Args...>), std::move(f));
+        using FunctionImplType = Internal::FunctionalImpl<F, R, Args...>;
+        if constexpr (sizeof(FunctionImplType) <= Internal::Small_Function_Size)
+            m_functional = new (m_stack) FunctionImplType(std::move(f));
+        else
+            m_functional = PLACEMENT_NEW(FunctionImplType, sizeof(FunctionImplType), std::move(f));
 
         return *this;
     }
@@ -80,10 +104,10 @@ public:
     {
         if (this != &other)
         {
-            if (m_functional != nullptr)
+            if (m_functional != nullptr && reinterpret_cast<uintptr_t>(m_functional) != reinterpret_cast<uintptr_t>(m_stack))
                 PLACEMENT_DELETE(FunctionType, m_functional);
 
-            m_functional = other.m_functional->clone();
+            m_functional = other.m_functional->clone(m_stack);
         }
 
         return *this;
@@ -96,6 +120,7 @@ public:
 
 private:
     FunctionType* m_functional;
+    uint8_t m_stack[Internal::Small_Function_Size]; // stack space for small function object, avoid heap allocation
 };
 
 
