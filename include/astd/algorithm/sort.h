@@ -156,22 +156,16 @@ Tp* end(Tp(&arr)[N])
     return arr + N;
 }
 
-template <typename Iter, typename Pred>
-void sort(Iter begin, Iter end, Pred predicate)
+template <typename Iter, typename Pred = Less<typename Iter::value_type>>
+void sort(Iter begin, Iter end, Pred predicate = Pred())
 {
     Internal::sort_unchecked(begin, end, predicate);
 }
 
-template <typename Iter>
-void sort(Iter begin, Iter end)
+template <typename Container, typename Pred = Less<typename Container::Iterator::value_type>>
+void sort(Container& container, Pred predicate = Pred())
 {
-    sort(begin, end, Less<typename Iter::value_type>());
-}
-
-template <typename Container>
-void sort(Container& container)
-{
-    sort(begin(container), end(container));
+    sort(begin(container), end(container), predicate);
 }
 
 template <typename Tp, size_t N>

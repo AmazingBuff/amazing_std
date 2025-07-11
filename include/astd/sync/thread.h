@@ -5,8 +5,8 @@
 #ifndef THREAD_H
 #define THREAD_H
 
-#include "astd/base/define.h"
 #include <thread>
+#include "astd/base/macro.h"
 
 AMAZING_NAMESPACE_BEGIN
 

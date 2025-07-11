@@ -9,10 +9,10 @@ INTERNAL_NAMESPACE_BEGIN
 template <typename Trait, typename NodeType>
 struct TreeTrait : Trait
 {
-    using Trait::key_type;
-    using Trait::value_type;
-    using Trait::key_compare;
-    using Trait::value_compare;
+    using typename Trait::key_type;
+    using typename Trait::value_type;
+    using typename Trait::key_compare;
+    using typename Trait::value_compare;
     using node_type = NodeType;
     using allocator = typename Trait::template alloc<node_type>;
 };

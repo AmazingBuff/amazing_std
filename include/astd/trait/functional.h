@@ -5,8 +5,8 @@
 #ifndef FUNCTIONAL_H
 #define FUNCTIONAL_H
 
+#include "astd/memory/allocator.h"
 #include "trait.h"
-#include "memory/allocator.h"
 
 AMAZING_NAMESPACE_BEGIN
 
@@ -72,7 +72,7 @@ public:
     {
         if constexpr (sizeof(Functional) <= Internal::Small_Function_Size)
         {
-            m_stack = other.m_stack;
+            memcpy(m_stack, other.m_stack, Internal::Small_Function_Size);
             m_functional = other.m_functional;
         }
         else

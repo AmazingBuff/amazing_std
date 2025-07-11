@@ -119,6 +119,10 @@ public:
             for (size_t i = bucket; i < m_bucket; ++i)
                 allocator::deallocate(m_data[i]);
         }
+
+        for (size_t i = m_bucket; i < bucket; ++i)
+            m_data[i] = allocator::allocate(Block_Size);
+
         m_bucket = bucket;
         m_capacity = bucket * Block_Size;
     }
