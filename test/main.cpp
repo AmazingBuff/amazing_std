@@ -83,8 +83,44 @@ void iii(int x)
     std::cout << x << '\n';
 }
 
+void swp()
+{
+    int a1 = 0, a2 = 0, a3 = 0;
+    auto f1 = [&]()
+    {
+        a1 = 2;
+    };
+
+    auto f2 = [&]()
+    {
+        a2 = 4;
+    };
+
+    auto f3 = [&]()
+    {
+        a3 = a1 + a2;
+    };
+
+    Amazing::TaskGraph graph;
+    auto task1 = graph.emplace(f1);
+    auto task2 = graph.emplace(f2);
+    auto task3 = graph.emplace(f3);
+
+    task1->succeed(task3);
+    task2->succeed(task3);
+    task3->precede(task1, task2);
+
+    Amazing::Global_Executor->run(graph);
+    Amazing::Global_Executor->wait();
+}
+
 int main()
 {
+
+    swp();
+
+    int* pu = PLACEMENT_NEW(int, sizeof(int));
+
     ProduceThread produce_thread;
     ConsumeThread consume_thread;
 

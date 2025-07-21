@@ -43,8 +43,8 @@ public:
 };
 
 
-#define PLACEMENT_NEW(type, size, ...) (new (allocate(size)) type(__VA_ARGS__))
-#define PLACEMENT_DELETE(type, p) {if constexpr (std::is_destructible_v<type>) if (p) p->~type(); deallocate(p);}
+#define PLACEMENT_NEW(type, size, ...) (new (Amazing::allocate(size)) type(__VA_ARGS__))
+#define PLACEMENT_DELETE(type, p) {if constexpr (std::is_destructible_v<type>) if (p) p->~type(); Amazing::deallocate(p); p = nullptr;}
 #define STACK_NEW(type, count) static_cast<type*>(alloca((count) * sizeof(type)))
 
 AMAZING_NAMESPACE_END

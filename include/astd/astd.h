@@ -21,7 +21,7 @@
 #include "algorithm/sort.h"
 #include "algorithm/iter.h"
 
-#include "sync/thread.h"
+#include "sync/parallel.h"
 
 AMAZING_NAMESPACE_BEGIN
 

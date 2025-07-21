@@ -164,7 +164,7 @@ public:
     explicit UniquePtr(Tp* ptr = nullptr) : m_ptr(ptr) {}
     ~UniquePtr()
     {
-        allocator::deallocate(m_ptr);
+        PLACEMENT_DELETE(Tp, m_ptr);
         m_ptr = nullptr;
     }
 
@@ -172,12 +172,13 @@ public:
     requires(std::is_constructible_v<Tp, Args...>)
     explicit UniquePtr(Args&&... args)
     {
-        Tp* p = allocator::allocate(1);
-        m_ptr = new (p) Tp(std::forward<Args>(args)...);
+        m_ptr = PLACEMENT_NEW(Tp, sizeof(Tp), std::forward<Args>(args)...);
     }
 
     UniquePtr(const UniquePtr&) = delete;
     UniquePtr& operator=(const UniquePtr&) = delete;
+    UniquePtr(UniquePtr&&) = default;
+    UniquePtr& operator=(UniquePtr&&) = default;
 
     NODISCARD Tp* get() const
     {

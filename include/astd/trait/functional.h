@@ -68,14 +68,9 @@ public:
             m_functional = PLACEMENT_NEW(FunctionImplType, sizeof(FunctionImplType), std::move(f));
     }
 
-    Functional(const Functional& other) : m_stack{}
+    Functional(const Functional& other) : m_functional(nullptr), m_stack{}
     {
-        if constexpr (sizeof(Functional) <= Internal::Small_Function_Size)
-        {
-            memcpy(m_stack, other.m_stack, Internal::Small_Function_Size);
-            m_functional = other.m_functional;
-        }
-        else
+        if (other.m_functional)
             m_functional = other.m_functional->clone(m_stack);
     }
 
@@ -83,6 +78,7 @@ public:
     {
         if (reinterpret_cast<uintptr_t>(m_functional) != reinterpret_cast<uintptr_t>(m_stack))
             PLACEMENT_DELETE(FunctionType, m_functional);
+        m_functional = nullptr;
     }
 
     template <typename F>
@@ -107,7 +103,13 @@ public:
             if (m_functional != nullptr && reinterpret_cast<uintptr_t>(m_functional) != reinterpret_cast<uintptr_t>(m_stack))
                 PLACEMENT_DELETE(FunctionType, m_functional);
 
-            m_functional = other.m_functional->clone(m_stack);
+            if (other.m_functional)
+                m_functional = other.m_functional->clone(m_stack);
+            else
+            {
+                m_functional = nullptr;
+                std::memcpy(m_stack, other.m_stack, sizeof(Internal::Small_Function_Size));
+            }
         }
 
         return *this;
@@ -116,6 +118,11 @@ public:
     R operator()(Args&&... args)
     {
         return m_functional->call(std::forward<Args>(args)...);
+    }
+
+    explicit operator bool() const
+    {
+        return m_functional != nullptr;
     }
 
 private:

@@ -169,7 +169,8 @@ public:
         if (m_size >= m_capacity)
             reserve(m_capacity == 0 ? Min_Vector_Alloc_Size : m_capacity * 3 / 2);
 
-        m_data[m_size] = Tp(std::forward<Args>(args)...);
+        Tp tmp(std::forward<Args>(args)...);
+        std::swap(m_data[m_size], tmp);
         m_size++;
     }
 
@@ -234,6 +235,11 @@ public:
             {
                 if constexpr (copyable<Tp>)
                     std::memcpy(new_data, m_data, sizeof(Tp) * m_capacity);
+                else if constexpr (movable<Tp>)
+                {
+                    for (size_t i = 0; i < m_capacity; i++)
+                        std::swap(m_data[i], new_data[i]);
+                }
                 else
                 {
                     for (size_t i = 0; i < m_capacity; i++)
@@ -304,6 +310,30 @@ public:
     Iterator const end() const
     {
         return Iterator(m_data + m_size);
+    }
+
+    Tp& front()
+    {
+        CONTAINER_ASSERT(m_size > 0, "vector is empty");
+        return m_data[0];
+    }
+
+    Tp const& front() const
+    {
+        CONTAINER_ASSERT(m_size > 0, "vector is empty");
+        return m_data[0];
+    }
+
+    Tp& back()
+    {
+        CONTAINER_ASSERT(m_size > 0, "vector is empty");
+        return m_data[m_size - 1];
+    }
+
+    Tp const& back() const
+    {
+        CONTAINER_ASSERT(m_size > 0, "vector is empty");
+        return m_data[m_size - 1];
     }
 
 protected:

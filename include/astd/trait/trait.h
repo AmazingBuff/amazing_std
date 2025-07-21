@@ -649,12 +649,14 @@ namespace Trait
 	}
 }
 
-template<typename Tp>
+template <typename Tp>
 concept copyable = std::is_trivially_copyable_v<Tp> && std::is_standard_layout_v<Tp>;
 
-template<typename Tp, typename Up>
+template <typename Tp, typename Up>
 concept memcopyable = copyable<Tp> && copyable<Up> && std::is_same_v<Tp, Up>;
 
+template <typename Tp>
+concept movable = std::movable<Tp>;
 
 template<typename T>
     requires std::is_enum_v<T>
