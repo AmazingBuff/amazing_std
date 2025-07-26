@@ -37,7 +37,7 @@ public:
     ~Executor();
 
     void run(TaskGraph& graph);
-    void wait() const;
+    void wait();
 
     Executor(const Executor&) = delete;
     Executor& operator=(const Executor&) = delete;
@@ -48,8 +48,10 @@ private:
     Task* fetch_task();
 private:
     Vector<Worker*> m_worker_pool;
-    Queue<Task*> m_task_queue;
-    std::mutex m_queue_mutex;
+    Vector<Task*> m_task_pool;
+    std::mutex m_task_mutex;
+    uint32_t m_task_index;
+
     std::atomic<uint32_t> m_counter;
 
     friend class Worker;

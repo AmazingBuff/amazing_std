@@ -20,6 +20,7 @@ class IFunctional
 public:
     virtual ~IFunctional() = default;
     virtual R call(Args&&... args) = 0;
+    virtual R call(Args&&... args) const = 0;
     virtual IFunctional* clone(uint8_t* address) const = 0;
 };
 
@@ -29,6 +30,10 @@ class FunctionalImpl final : public IFunctional<R, Args...>
 public:
     explicit FunctionalImpl(T value) : m_value(std::move(value)) {}
     R call(Args&&... args) override
+    {
+        return m_value(std::forward<Args>(args)...);
+    }
+    R call(Args&&... args) const override
     {
         return m_value(std::forward<Args>(args)...);
     }
@@ -116,6 +121,11 @@ public:
     }
 
     R operator()(Args&&... args)
+    {
+        return m_functional->call(std::forward<Args>(args)...);
+    }
+
+    R operator()(Args&&... args) const
     {
         return m_functional->call(std::forward<Args>(args)...);
     }

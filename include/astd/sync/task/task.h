@@ -62,7 +62,7 @@ private:
 class TaskGraph
 {
 public:
-    TaskGraph();
+    explicit TaskGraph(uint32_t task_count);
     ~TaskGraph();
 
     template <typename F, typename... Args>
@@ -70,6 +70,7 @@ public:
     {
         Task* task = PLACEMENT_NEW(Task, sizeof(Task), std::forward<F>(f), std::forward<Args>(args)...);
         m_task_nodes.push_back(task);
+        m_task_counter++;
         return task;
     }
 
@@ -80,6 +81,7 @@ private:
     void compile();
 private:
     Vector<Task*> m_task_nodes;
+    uint32_t m_task_counter;
     uint32_t m_join_counter;
 
     friend class Executor;

@@ -6,12 +6,15 @@
 
 AMAZING_NAMESPACE_BEGIN
 
-TaskGraph::TaskGraph() : m_join_counter(0) {}
+TaskGraph::TaskGraph(uint32_t task_count) : m_task_counter(0), m_join_counter(0)
+{
+    m_task_nodes.reserve(task_count);
+}
 
 TaskGraph::~TaskGraph()
 {
-    for (Task* task : m_task_nodes)
-        PLACEMENT_DELETE(Task, task);
+    for (uint32_t i = 0; i < m_task_counter; ++i)
+        PLACEMENT_DELETE(Task, m_task_nodes[i]);
 }
 
 void TaskGraph::erase(Task* task)
@@ -43,12 +46,12 @@ void TaskGraph::erase(Task* task)
         }
     }
 
-    for (uint32_t i = 0; i < m_task_nodes.size(); ++i)
+    for (uint32_t i = 0; i < m_task_counter; ++i)
     {
         if (m_task_nodes[i] == task)
         {
-            m_task_nodes[i] = m_task_nodes.back();
-            m_task_nodes.pop_back();
+            m_task_nodes[i] = m_task_nodes[m_task_counter - 1];
+            m_task_counter--;
             PLACEMENT_DELETE(Task, task);
             break;
         }
@@ -57,10 +60,10 @@ void TaskGraph::erase(Task* task)
 
 void TaskGraph::compile()
 {
-    uint32_t node_count = m_task_nodes.size();
+    uint32_t node_count = m_task_counter;
     uint32_t start_node_count = 0;
 
-    uint32_t* start_nodes = STACK_NEW(uint32_t, node_count);
+    Vector<uint32_t> start_nodes(node_count);
     for (uint32_t i = 0; i < node_count; ++i)
     {
         uint32_t dependency_count = m_task_nodes[i]->m_precede_nodes.size();

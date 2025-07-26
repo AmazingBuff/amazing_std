@@ -32,7 +32,7 @@ void Worker::run(std::stop_token token)
 }
 
 
-Executor::Executor(size_t thread_count)
+Executor::Executor(size_t thread_count) : m_task_index(0)
 {
     ASSERT(thread_count > 0 && thread_count <= std::thread::hardware_concurrency(), "astd", "thread count must be in range [1, {}]!", std::thread::hardware_concurrency());
 
@@ -58,32 +58,35 @@ Executor::~Executor()
 void Executor::run(TaskGraph& graph)
 {
     m_counter = graph.m_task_nodes.size();
+    m_task_pool.reserve(graph.m_task_nodes.size());
     graph.compile();
     {
-        std::lock_guard<std::mutex> lock(m_queue_mutex);
+        std::lock_guard<std::mutex> lock(m_task_mutex);
         for (uint32_t i = 0; i < graph.m_join_counter; ++i)
-            m_task_queue.enqueue(graph.m_task_nodes[i]);
+            m_task_pool.push_back(graph.m_task_nodes[i]);
     }
 }
 
-void Executor::wait() const
+void Executor::wait()
 {
-    while (m_counter.load(std::memory_order_acquire));
+    while (m_counter.load(std::memory_order_acquire)) {}
+    m_task_pool.clear();
+    m_task_index = 0;
 }
 
 void Executor::insert_task(Task* task)
 {
-    std::lock_guard<std::mutex> lock(m_queue_mutex);
-    m_task_queue.enqueue(task);
+    std::lock_guard<std::mutex> lock(m_task_mutex);
+    m_task_pool.push_back(task);
 }
 
 Task* Executor::fetch_task()
 {
-    std::lock_guard<std::mutex> lock(m_queue_mutex);
-    if (!m_task_queue.empty())
+    std::lock_guard<std::mutex> lock(m_task_mutex);
+    if (m_task_index < m_task_pool.size())
     {
-        Task* task = m_task_queue.front();
-        m_task_queue.dequeue();
+        Task* task = m_task_pool[m_task_index];
+        m_task_index++;
         return task;
     }
 

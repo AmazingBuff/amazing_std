@@ -27,7 +27,7 @@ void for_each(ParallelStrategy strategy, Container const& container, F&& f)
         break;
     case ParallelStrategy::e_parallel:
     {
-        TaskGraph graph;
+        TaskGraph graph(container.size());
         for_each(begin(container), end(container), [&](auto&& item)
         {
             graph.emplace(std::forward<F>(f), item);
