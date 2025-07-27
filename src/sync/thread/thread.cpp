@@ -27,7 +27,12 @@ void Thread::start()
 
 void Thread::stop()
 {
-    m_thread.request_stop();
+    if (m_running)
+    {
+        m_thread.request_stop();
+        m_thread.join();
+        m_running = false;
+    }
 }
 
 bool Thread::is_running() const

@@ -57,7 +57,5 @@ private:
     friend class Worker;
 };
 
-extern UniquePtr<Executor> Global_Executor;
-
 AMAZING_NAMESPACE_END
 #endif //EXECUTOR_H

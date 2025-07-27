@@ -93,7 +93,4 @@ Task* Executor::fetch_task()
     return nullptr;
 }
 
-
-UniquePtr<Executor> Global_Executor = UniquePtr<Executor>(PLACEMENT_NEW(Executor, sizeof(Executor), std::thread::hardware_concurrency()));
-
 AMAZING_NAMESPACE_END

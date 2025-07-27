@@ -33,8 +33,10 @@ void for_each(ParallelStrategy strategy, Container const& container, F&& f)
             graph.emplace(std::forward<F>(f), item);
         });
 
-        Global_Executor->run(graph);
-        Global_Executor->wait();
+        UniquePtr<Executor> executor = UniquePtr<Executor>(PLACEMENT_NEW(Executor, sizeof(Executor), std::thread::hardware_concurrency()));
+
+        executor->run(graph);
+        executor->wait();
     }
     }
 }
