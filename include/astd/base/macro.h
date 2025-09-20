@@ -10,3 +10,9 @@
 #define INTERNAL_NAMESPACE_END  NAMESPACE_END(Internal)
 
 #define NODISCARD [[nodiscard]]
+
+#ifdef __GNUC__
+#include <bits/functional_hash.h>
+#include <cstdint>
+#include <atomic>
+#endif

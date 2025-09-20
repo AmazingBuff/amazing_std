@@ -65,7 +65,7 @@ void just()
     uint32_t* v = nullptr;
     if (!no_dtor->v.empty())
     {
-        v = static_cast<uint32_t*>(alloca(sizeof(uint32_t) * no_dtor->v.size()));
+        v = STACK_NEW(uint32_t, no_dtor->v.size());
         for (int i = 0; i < no_dtor->v.size(); i++)
         {
             v[i] = no_dtor->v[i];
@@ -110,8 +110,10 @@ void swp()
     task2->succeed(task3);
     task3->precede(task1, task2);
 
-    Amazing::Global_Executor->run(graph);
-    Amazing::Global_Executor->wait();
+    Amazing::Executor executor(3);
+
+    executor.run(graph);
+    executor.wait();
 }
 
 int main()

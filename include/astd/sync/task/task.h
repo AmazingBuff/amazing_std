@@ -62,7 +62,7 @@ private:
 class TaskGraph
 {
 public:
-    explicit TaskGraph(uint32_t task_count);
+    explicit TaskGraph(uint32_t task_count = 0);
     ~TaskGraph();
 
     template <typename F, typename... Args>

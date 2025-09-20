@@ -113,7 +113,7 @@ public:
             else
             {
                 m_functional = nullptr;
-                std::memcpy(m_stack, other.m_stack, sizeof(Internal::Small_Function_Size));
+                std::memcpy(m_stack, other.m_stack, Internal::Small_Function_Size);
             }
         }
 

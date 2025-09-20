@@ -1,6 +1,7 @@
 #pragma once
 
 #include "astd/base/define.h"
+#include <cstring>
 
 AMAZING_NAMESPACE_BEGIN
 
